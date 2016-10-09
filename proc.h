@@ -1,6 +1,10 @@
 // Segments in proc->gdt.
 #define NSEGS     7
 
+// Default UID and GID for init
+#define INITUID     0
+#define INITGID     0
+
 // Per-CPU state
 struct cpu {
   uchar id;                    // Local APIC ID; index into cpus[] below
@@ -66,6 +70,10 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   uint start_ticks;	       // Start ticks (debugging)
+#ifdef CS333_P2
+  uint uid;                    // Process owner's user id
+  uint gid;                    // Process owner's group id
+#endif
 };
 
 // Process memory is laid out contiguously, low addresses first:

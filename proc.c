@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "uproc.h"
 
 struct {
   struct spinlock lock;
@@ -102,6 +103,11 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
+
+#ifdef CS333_P2
+	p->uid = INITUID;
+	p->gid = INITGID;
+#endif
 }
 
 // Grow current process's memory by n bytes.
@@ -147,6 +153,12 @@ fork(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
+
+#ifdef CS333_P2
+	// Copy process UID, GID
+	np->uid = proc->uid;
+	np->gid = proc->gid;
+#endif
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -487,3 +499,45 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+#ifdef CS333_P2
+// Get process information
+int
+getprocs(uint max, struct uproc* table)
+{
+  static char *states[] = {
+  [UNUSED]    "unused",
+  [EMBRYO]    "embryo",
+  [SLEEPING]  "sleep ",
+  [RUNNABLE]  "runble",
+  [RUNNING]   "run   ",
+  [ZOMBIE]    "zombie"
+  };
+
+	int procscount = 0;
+  struct proc *p;
+	if(max > NPROC)
+		max = NPROC;
+	acquire(&ptable.lock);
+	for(p = ptable.proc; p < &ptable.proc[max]; p++){
+		if(p->state == UNUSED || p->state == EMBRYO || p->state == ZOMBIE)
+			continue;
+		table->pid = p->pid;
+		table->uid = p->uid;
+		table->gid = p->gid;
+		table->ppid = p->parent->pid;
+		acquire(&tickslock);
+		table->elapsed_ticks = ticks - p->start_ticks;
+		table->CPU_total_ticks = ticks;
+		release(&tickslock);
+		safestrcpy(table->state, states[p->state], sizeof(table->state));
+		table->size = p->sz;
+		safestrcpy(table->name, p->name, sizeof(table->name));
+		++procscount;
+		++table;
+	}
+	release(&ptable.lock);
+
+  return procscount;
+}
+#endif

@@ -78,7 +78,8 @@ OBJDUMP = $(TOOLPREFIX)objdump
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fvar-tracking -fvar-tracking-assignments -O0 -g -Wall -MD -gdwarf-2 -m32 -Werror -fno-omit-frame-pointer
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 # CFLAGS += -DPRINT_SYSCALLS     # CS333 project 1 to print syscall traces
-# CFLAGS += -DUSE_BUILTINS       # CS333 project to turn on shell built-ins
+CFLAGS += -DCS333_P2					 # CS333 project 2 turn on
+CFLAGS += -DUSE_BUILTINS       # CS333 project to turn on shell built-ins
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null)
@@ -176,6 +177,8 @@ UPROGS=\
 	_zombie\
 	_halt\
 	_date\
+	_testgiduid\
+	_ps\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

@@ -8,13 +8,16 @@ struct rtcdate;
 struct spinlock;
 struct stat;
 struct superblock;
+#ifdef CS333_P2
+struct uproc;
+#endif
+
 
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
 void            brelse(struct buf*);
 void            bwrite(struct buf*);
-
 // console.c
 void            consoleinit(void);
 void            cprintf(char*, ...);
@@ -117,6 +120,9 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+#ifdef CS333_P2
+int							getprocs(uint max, struct uproc*);
+#endif
 
 // swtch.S
 void            swtch(struct context**, struct context*);
