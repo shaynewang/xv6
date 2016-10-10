@@ -69,8 +69,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  uint start_ticks;	       // Start ticks (debugging)
+  uint start_ticks;	           // Start ticks (debugging)
 #ifdef CS333_P2
+	uint cpu_ticks_total;				 // Total elapsed ticks in CPU
+	uint cpu_ticks_in;			  	 // Ticks when scheduled
   uint uid;                    // Process owner's user id
   uint gid;                    // Process owner's group id
 #endif

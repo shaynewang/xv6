@@ -298,8 +298,14 @@ scheduler(void)
       proc = p;
       switchuvm(p);
       p->state = RUNNING;
+#ifdef CS333_P2
+			p->cpu_ticks_in = ticks;
+#endif
       swtch(&cpu->scheduler, proc->context);
       switchkvm();
+#ifdef CS333_P2
+			p->cpu_ticks_total += ticks - p->cpu_ticks_in;
+#endif
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
@@ -333,7 +339,7 @@ sched(void)
   if(proc->state == RUNNING)
     panic("sched running");
   if(readeflags()&FL_IF)
-    panic("sched interruptible");
+    panic("sched interrible");
   intena = cpu->intena;
   swtch(&proc->context, cpu->scheduler);
   cpu->intena = intena;
@@ -528,7 +534,7 @@ getprocs(uint max, struct uproc* table)
 		table->ppid = p->parent->pid;
 		acquire(&tickslock);
 		table->elapsed_ticks = ticks - p->start_ticks;
-		table->CPU_total_ticks = ticks;
+		table->CPU_total_ticks = p->cpu_ticks_total;
 		release(&tickslock);
 		safestrcpy(table->state, states[p->state], sizeof(table->state));
 		table->size = p->sz;

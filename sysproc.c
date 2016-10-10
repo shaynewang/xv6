@@ -94,8 +94,10 @@ sys_uptime(void)
 //Turn of the computer
 int sys_halt(void){
   cprintf("Shutting down ...\n");
-  outw (0xB004, 0x0 | 0x2000);
-  return 0;
+  //outw (0xB004, 0x0 | 0x2000);
+	outw( 0x604, 0x0 | 0x2000 );
+	return 0;
+
 }
 
 //Get current UTC date of the system
@@ -123,7 +125,7 @@ sys_setuid(void)
 	return 0;
 }
 
-// Set UID
+// Set GID
 int
 sys_setgid(void)
 {
