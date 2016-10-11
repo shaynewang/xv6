@@ -465,9 +465,17 @@ print_elapsed(struct proc *p)
 {
   uint temp = p->start_ticks;
   temp = ticks - temp;
+  cprintf("%d.%d",temp/100, temp%100);
+#ifdef CS333_P2
+  cprintf("  %d.%d",p->cpu_ticks_total/100, p->cpu_ticks_total%100);
+  cprintf("  %d  ", p->uid);
+  cprintf("  %d  ", p->gid);
+  if(p->pid > 1)
+		cprintf("  %d  ", p->parent->pid);
+	else
+		cprintf("  %d  ", p->pid);
 
-  cprintf("%d.",temp/100);
-  cprintf("%d",temp%100);
+#endif
 }
 
 void
@@ -486,7 +494,7 @@ procdump(void)
   char *state;
   uint pc[10];
 
-  cprintf("\nPID  State  Name  Elapsed  PCs\n");
+  cprintf("\nPID  State  Name  Elapsed  TotalCpuTime  UID  GID  PPID   PCs\n");
   
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->state == UNUSED)
