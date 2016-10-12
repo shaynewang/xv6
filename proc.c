@@ -474,7 +474,6 @@ print_elapsed(struct proc *p)
 		cprintf("  %d  ", p->parent->pid);
 	else
 		cprintf("  %d  ", p->pid);
-
 #endif
 }
 
