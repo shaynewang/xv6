@@ -158,6 +158,8 @@ sys_getppid(void)
 {
 	if(proc->pid == 1)
 		return proc->pid;
+	if(!proc->parent)
+		return proc->pid;
 	return proc->parent->pid;
 }
 

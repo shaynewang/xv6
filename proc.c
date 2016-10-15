@@ -493,7 +493,11 @@ procdump(void)
   char *state;
   uint pc[10];
 
+#ifdef CS333_P2
   cprintf("\nPID  State  Name  Elapsed    TotalCpuTime    UID    GID    PPID     PCs\n");
+#else
+	cprintf("\nPID  State  Name  Elapsed    PCs\n");
+#endif
   
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->state == UNUSED)

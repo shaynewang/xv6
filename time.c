@@ -1,6 +1,7 @@
 #include "types.h"
 #include "user.h"
 
+#ifdef CS333_P2
 int
 main(int argc, char *argv[])
 {
@@ -17,7 +18,7 @@ main(int argc, char *argv[])
 		else if(pid == 0) {
 			//child process running
 			char **nargv = ++argv;
-			exec(argv[0], nargv);
+			exec(argv[1], nargv);
 			exit();
 			}
 		else {
@@ -31,3 +32,11 @@ main(int argc, char *argv[])
 
   exit();
 }
+#else
+int
+main(int argc, char *argv[])
+{
+	printf(2, "Please compile with CS333_P2 on to enable this feature.\n");
+	exit();
+}
+#endif
