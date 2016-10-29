@@ -5,6 +5,11 @@
 #define INITUID     0
 #define INITGID     0
 
+// Default number of ready processes list
+#define NUM_READY_LISTS	3
+// Defaulty starting priority number
+#define PPRIORITY	0
+
 // Per-CPU state
 struct cpu {
   uchar id;                    // Local APIC ID; index into cpus[] below
@@ -75,6 +80,10 @@ struct proc {
 	uint cpu_ticks_in;			  	 // Ticks when scheduled
   uint uid;                    // Process owner's user id
   uint gid;                    // Process owner's group id
+#endif
+
+#ifdef CS333_P3
+	struct proc *next;			 // Next process in the process list
 #endif
 };
 

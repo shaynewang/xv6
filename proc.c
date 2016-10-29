@@ -11,6 +11,10 @@
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
+#ifdef CS333_P3
+	struct proc *pReadyList[NUM_READY_LISTS];
+	struct proc *pFreeList;
+#endif
 } ptable;
 
 static struct proc *initproc;
@@ -27,6 +31,81 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
+#ifdef CS333_P3
+// Pops a process off a process queue
+static struct proc*
+popq(struct proc *proclist)
+{
+	if(!proclist) return 0;
+	struct proc *ret;
+	ret = proclist;
+	ret->next = 0;
+	proclist = proclist->next;
+	return ret;
+}
+
+
+// Pushs a process to the pFreeList
+static int
+pushfreeq(struct proc* input, struct proc *freelist)
+{
+	if(!input) return -1;
+	if(input->state == UNUSED)
+		panic("memory deallocated?");
+	else {
+		input->state = UNUSED;
+		input->next = freelist;
+		freelist = input;
+	}
+	return 0;
+}
+
+// Pushs a process to the pReadyList
+static int
+pushreadyq(struct proc* input, struct proc *readylist)
+{
+	if(!input) return -1;
+	input->state = RUNNABLE;
+	if(!readylist)
+		readylist = input;
+	else {
+		struct proc* temp = readylist;
+		while(temp->next)
+			temp = temp->next;
+		temp->next = input;
+		input->next = 0;
+	}
+	return 0;
+}
+
+// Pops unused process off the free list
+static struct proc*
+popfree(struct proc *freelist)
+{
+	if(!freelist) return 0;
+	struct proc *ret;
+	ret = popq(freelist);
+	if(ret->state == UNUSED)
+		return ret;
+	pushfreeq(ret, freelist);
+	panic("NON-UNUSED process in freelist");
+}
+
+// Pops runnable process off the ready list
+static struct proc*
+popready(struct proc *readylist)
+{
+	if(!readylist) return 0;
+	struct proc *ret;
+	ret = popq(readylist);
+	if(ret->state == RUNNABLE)
+		return ret;
+	pushreadyq(ret, readylist);
+	panic("NON-RUNNABLE process in readylist");
+}
+#endif
+
+
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
 // state required to run in the kernel.
@@ -37,11 +116,22 @@ allocproc(void)
   struct proc *p;
   char *sp;
 
+#ifndef CS333_P3
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
   release(&ptable.lock);
+#else
+	p = 0;
+  acquire(&ptable.lock);
+	do{
+		p = popfree(ptable.pFreeList);
+		if(p && p->state == UNUSED)
+      goto found;
+	} while(p);
+  release(&ptable.lock);
+#endif
   return 0;
 
 found:
@@ -85,6 +175,15 @@ userinit(void)
 {
   struct proc *p;
   extern char _binary_initcode_start[], _binary_initcode_size[];
+
+#ifdef CS333_P3
+	acquire(&ptable.lock);
+	ptable.pFreeList = 0;
+	p = 0;
+	if(pushfreeq(p, ptable.pFreeList))
+		panic("userinit failed");
+	release(&ptable.lock);
+#endif
   
   p = allocproc();
   initproc = p;
@@ -105,6 +204,16 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
+#ifdef CS333_P3
+	if(p->state == RUNNABLE) {
+		p->next = 0;
+		acquire(&ptable.lock);
+		ptable.pReadyList[0] = p; // Put the init process to the highest priority queue
+		release(&ptable.lock);
+	}
+	else
+		panic("userinit: not RUNNABLE process cannot be ran.");
+#endif
 
 #ifdef CS333_P2
 	p->uid = INITUID;
@@ -322,7 +431,39 @@ scheduler(void)
 void
 scheduler(void)
 {
+  struct proc *p;
 
+  for(;;){
+		// Enable interrupts on this processor.
+		sti();
+
+		// Loop over process table looking for process to run.
+		acquire(&ptable.lock);
+		p = popready(ptable.pReadyList[0]);
+    if(!p)
+        continue;
+		if(p && p->state != RUNNABLE)
+				panic("Non-runnable process in readytable");
+
+		// Switch to chosen process.  It is the process's job
+		// to release ptable.lock and then reacquire it
+		// before jumping back to us.
+		proc = p;
+		switchuvm(p);
+		p->state = RUNNING;
+#ifdef CS333_P2
+		acquire(&tickslock);
+		p->cpu_ticks_in = ticks;
+		release(&tickslock);
+#endif
+		swtch(&cpu->scheduler, proc->context);
+		switchkvm();
+
+		// Process is done running for now.
+		// It should have changed its p->state before coming back.
+		proc = 0;
+    release(&ptable.lock);
+  }
 }
 #endif
 

@@ -28,6 +28,7 @@ main(int argc, char *argv[])
 		ps->ppid, ps->elapsed_ticks/100, ps->elapsed_ticks%100, ps->CPU_total_ticks/100, ps->CPU_total_ticks%100, ps->size);
 		++ps;
 	}
+	free(ps);
   exit();
 }
 #else
