@@ -125,6 +125,9 @@ allocproc(void)
 #else
 	p = 0;
   acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    if(p->state == UNUSED)
+			pushfreeq(p, &ptable.pFreeList);
 	p = popfree(&ptable.pFreeList);
 	if(p && p->state == UNUSED)
 		goto found;
@@ -283,7 +286,7 @@ fork(void)
   acquire(&ptable.lock);
   np->state = RUNNABLE;
 #ifdef CS333_P3
-//  pushreadyq(np, &ptable.pReadyList[0]);
+  pushreadyq(np, &ptable.pReadyList[0]);
 #endif
   release(&ptable.lock);
   
