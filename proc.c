@@ -188,6 +188,13 @@ timetopromote(void)
 	release(&tickslock);
   return 1;	
 }
+
+//TODO: Set a process's priority to value
+int
+setpriority(int pid, int priority)
+{
+	return 0;
+}
 #endif
 
 // Set up first user process.
