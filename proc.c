@@ -14,6 +14,7 @@ struct {
 #ifdef CS333_P3
 	struct proc *pReadyList[NUM_READY_LISTS];
 	struct proc *pFreeList;
+	uint PromoteAtTime;
 #endif
 } ptable;
 
@@ -169,6 +170,26 @@ found:
   return p;
 }
 
+// Check if it's time to promote
+// Assume alway hold the lock
+// return 1 if it's time to promote
+#ifdef CS333_P3
+static int
+timetopromote(void)
+{
+  if(!holding(&ptable.lock))
+    panic("timetopromote ptable.lock");
+	acquire(&tickslock);
+	if(ticks < ptable.PromoteAtTime) {
+	  release(&tickslock);
+		return 0; // Not time to promote
+	}
+	ptable.PromoteAtTime = ticks + TICKS_TO_PROMOTE;
+	release(&tickslock);
+  return 1;	
+}
+#endif
+
 // Set up first user process.
 void
 userinit(void)
@@ -178,6 +199,7 @@ userinit(void)
 
 #ifdef CS333_P3
 	acquire(&ptable.lock);
+	timetopromote(); // Initialize promote timer
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
 			pushfreeq(p, &ptable.pFreeList);

@@ -7,8 +7,10 @@
 
 // Default number of ready processes list
 #define NUM_READY_LISTS	3
-// Defaulty starting priority number
+// Default starting priority number
 #define PPRIORITY	0
+// Default promotion interval
+#define TICKS_TO_PROMOTE 400
 
 // Per-CPU state
 struct cpu {
