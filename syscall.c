@@ -108,6 +108,9 @@ extern int sys_setuid(void);
 extern int sys_setgid(void);
 extern int sys_getprocs(void);
 #endif
+#ifdef CS333_P3
+extern int sys_setpriority(void);
+#endif
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -140,6 +143,9 @@ static int (*syscalls[])(void) = {
 [SYS_setuid]  sys_setuid,
 [SYS_setgid]  sys_setgid,
 [SYS_getprocs]  sys_getprocs,
+#endif
+#ifdef CS333_P3
+[SYS_setpriority]  sys_setpriority;
 #endif
 };
 
@@ -176,6 +182,9 @@ static const char * (print_syscalls[]) = {
 [SYS_setgid]   = "setuid",
 [SYS_setuid]   = "setgid",
 [SYS_getprocs]   = "getprocs",
+#endif
+#ifdef CS333_P3
+[SYS_setpriority]  = "setpriority",
 #endif
 };
 #endif

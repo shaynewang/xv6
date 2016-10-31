@@ -176,3 +176,14 @@ sys_getprocs(void)
 	return getprocs(arg1, table);
 }
 #endif
+
+#ifdef CS333_P3
+int
+sys_setpriority(void)
+{
+	int value;
+	if(argint(1,(int*) &value) < 0)
+		return -1;
+  return setpriority(getpid(), value);
+}
+#endif

@@ -123,6 +123,9 @@ void            yield(void);
 #ifdef CS333_P2
 int							getprocs(uint max, struct uproc*);
 #endif
+#ifdef CS333_P3
+int							setpriority(int pid, int priority);
+#endif
 
 // swtch.S
 void            swtch(struct context**, struct context*);
