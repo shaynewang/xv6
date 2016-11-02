@@ -50,8 +50,10 @@ popq(struct proc **proclist)
 static int
 pushfreeq(struct proc* input, struct proc **freelist)
 {
+  if(!holding(&ptable.lock))
+    panic("pushfreeq ptable.lock\n");
 	if(!input || input->state != UNUSED)
-		panic("error push to freelist");
+		panic("error push to freelist\n");
 	else {
 		input->next = *freelist;
 		*freelist = input;
@@ -736,7 +738,8 @@ getprocs(uint max, struct uproc* table)
 	if(max > NPROC)
 		max = NPROC;
 	acquire(&ptable.lock);
-	for(p = ptable.proc; p < &ptable.proc[max]; p++){
+	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+		if(max <= 0) break; // break out of the loop if the max number of processes to be displayed has reached
 		if(p->state == UNUSED || p->state == EMBRYO || p->state == ZOMBIE)
 			continue;
 		table->pid = p->pid;
@@ -755,6 +758,7 @@ getprocs(uint max, struct uproc* table)
 		safestrcpy(table->name, p->name, sizeof(table->name));
 		++procscount;
 		++table;
+		--max;
 	}
 	release(&ptable.lock);
 

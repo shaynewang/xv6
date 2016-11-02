@@ -7,9 +7,10 @@ main(int argc, char *argv[])
 {
 	int elapsed_t = 0;
 	int pid;
-	int start_t = uptime();
+	int start_t = 0;
 	int end_t = start_t;
 	if(argc > 1) {
+		start_t = uptime();
 		pid = fork();
 		if(pid > 0) {
 			pid = wait();
@@ -18,11 +19,13 @@ main(int argc, char *argv[])
 		else if(pid == 0) {
 			//child process running
 			char **nargv = ++argv;
-			exec(argv[0], nargv);
+			if(exec(argv[0], nargv) < 0)
+				printf(2,"%s failed to execute.", argv[1]);
 			exit();
 			}
 		else {
-			// error
+			// error: fork failed
+			printf(2,"Error: Fork failed");
 			exit();
 			}
 		}
