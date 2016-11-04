@@ -139,21 +139,21 @@ sys_setgid(void)
 }
 
 // Get UID of current process
-uint
+int
 sys_getuid(void)
 {
 	return proc->uid;
 }
 
 // Get GID of current process
-uint
+int
 sys_getgid(void)
 {
 	return proc->gid;
 }
 
 // Get PPID of current process
-uint
+int
 sys_getppid(void)
 {
 	if(proc->pid == 1)

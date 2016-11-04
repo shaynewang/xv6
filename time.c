@@ -18,8 +18,7 @@ main(int argc, char *argv[])
 			}
 		else if(pid == 0) {
 			//child process running
-			char **nargv = ++argv;
-			if(exec(argv[0], nargv) < 0)
+			if(exec(argv[1], argv+1) < 0)
 				printf(2,"%s failed to execute.", argv[1]);
 			exit();
 			}
