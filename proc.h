@@ -8,9 +8,11 @@
 // Default number of ready processes list
 #define NUM_READY_LISTS	3
 // Default starting priority number
-#define PPRIORITY	0
+#define PRIORITY	0
 // Default promotion interval
-#define TICKS_TO_PROMOTE 400
+#define TICKS_TO_PROMOTE 1200
+// Default process budget
+#define BUDGET 400
 
 // Per-CPU state
 struct cpu {
@@ -85,6 +87,8 @@ struct proc {
 #endif
 
 #ifdef CS333_P3
+	int priority;						 // Process priority 0 being the highest
+	int budget;							 // A process's budget time
 	struct proc *next;			 // Next process in the process list
 #endif
 };

@@ -145,7 +145,7 @@ static int (*syscalls[])(void) = {
 [SYS_getprocs]  sys_getprocs,
 #endif
 #ifdef CS333_P3
-[SYS_setpriority]  sys_setpriority;
+[SYS_setpriority]  sys_setpriority,
 #endif
 };
 

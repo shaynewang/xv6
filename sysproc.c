@@ -182,8 +182,11 @@ int
 sys_setpriority(void)
 {
 	int value;
+	int pid;
+	if(argint(0,(int*) &pid) < 0)
+		return -1;
 	if(argint(1,(int*) &value) < 0)
 		return -1;
-  return setpriority(getpid(), value);
+  return setpriority(pid, value);
 }
 #endif

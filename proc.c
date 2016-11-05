@@ -34,6 +34,7 @@ pinit(void)
 
 #ifdef CS333_P3
 // Pops a process off a process queue
+// Return -1 if no process in the queue
 static struct proc*
 popq(struct proc **proclist)
 {
@@ -47,7 +48,7 @@ popq(struct proc **proclist)
 
 
 // Pushs a process to the pFreeList
-static int
+static void
 pushfreeq(struct proc* input, struct proc **freelist)
 {
   if(!holding(&ptable.lock))
@@ -58,15 +59,16 @@ pushfreeq(struct proc* input, struct proc **freelist)
 		input->next = *freelist;
 		*freelist = input;
 	}
-	return 0;
 }
 
 // Pushs a process to the pReadyList
-static int
+static void
 pushreadyq(struct proc* input, struct proc **readylist)
 {
-	if(!input) return -1;
-	input->state = RUNNABLE;
+  if(!holding(&ptable.lock))
+    panic("pushreadyq ptable.lock\n");
+	if(!input || input->state != RUNNABLE)
+		panic("error push to readylist\n");
 	if(!*readylist) {
 		input->next = 0;
 		*readylist = input;
@@ -78,7 +80,6 @@ pushreadyq(struct proc* input, struct proc **readylist)
 		temp->next = input;
 		input->next = 0;
 	}
-	return 0;
 }
 
 // Pops unused process off the free list
@@ -105,6 +106,29 @@ popready(struct proc **readylist)
 		return ret;
 	pushreadyq(ret, readylist);
 	panic("NON-RUNNABLE process in readylist");
+}
+
+// TODO
+// Set process's priority to specified value
+// Return 0 if success
+// Assumes holding ptable lock
+int
+setpriority(int pid, int priority)
+{
+  if(!holding(&ptable.lock))
+    panic("setpriority ptable.lock\n");
+	if(pid < 0)
+    panic("pid out of bound\n");
+	if(priority < 0 || priority >= NUM_READY_LISTS)
+    panic("process priority out of bound\n");
+
+  struct proc *p;
+	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+		if(p->pid == pid) {
+			p->priority = priority;
+			p->budget = BUDGET;
+		}
+	return 0;
 }
 #endif
 
@@ -188,14 +212,7 @@ timetopromote(void)
 	}
 	ptable.PromoteAtTime = ticks + TICKS_TO_PROMOTE;
 	release(&tickslock);
-  return 1;	
-}
-
-//TODO: Set a process's priority to value
-int
-setpriority(int pid, int priority)
-{
-	return 0;
+  return 1;
 }
 #endif
 
@@ -317,6 +334,10 @@ fork(void)
   acquire(&ptable.lock);
   np->state = RUNNABLE;
 #ifdef CS333_P3
+	if(setpriority(pid, PRIORITY) < 0) {
+		release(&ptable.lock);
+		return -1;
+	}
   pushreadyq(np, &ptable.pReadyList[0]);
 #endif
   release(&ptable.lock);
@@ -470,16 +491,25 @@ scheduler(void)
 		// Enable interrupts on this processor.
 		sti();
 
-		// Loop over process table looking for process to run.
+		// Loop over ready list looking for non empty list to 
+		// pop a process to run.
 		p = 0;
 		acquire(&ptable.lock);
-		p = popready(&ptable.pReadyList[0]);
+		int i;
+		for(i=0;i < NUM_READY_LISTS; ++i) {
+			if(!ptable.pReadyList[i])
+				continue;
+			p = popready(&ptable.pReadyList[i]);
+			break;
+		}
 		if(!p) {
 				release(&ptable.lock);
 				continue;
 		}
-		if(p && p->state != RUNNABLE)
+		if(p && p->state != RUNNABLE) {
+				release(&ptable.lock);
 				panic("Non-runnable process in readytable");
+		}
 
 		// Switch to chosen process.  It is the process's job
 		// to release ptable.lock and then reacquire it
@@ -494,6 +524,18 @@ scheduler(void)
 #endif
 		swtch(&cpu->scheduler, proc->context);
 		switchkvm();
+
+		// Check process's budget if its <= 0
+		// demote to the next lower priority queue
+		// else add it to the back of current queue.
+		if(p->state == RUNNABLE) {
+			if(p->budget <=0 ){
+				p->priority += 1;
+				p->budget = BUDGET;
+			}
+			pushreadyq(p, &ptable.pReadyList[p->priority]);
+		}
+
 
 		// Process is done running for now.
 		// It should have changed its p->state before coming back.
@@ -522,6 +564,7 @@ sched(void)
 #ifdef CS333_P2
 	acquire(&tickslock);
 	proc->cpu_ticks_total += ticks - proc->cpu_ticks_in;
+	proc->budget -= proc->cpu_ticks_total;
 	release(&tickslock);
 #endif
   swtch(&proc->context, cpu->scheduler);
@@ -534,9 +577,6 @@ yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
   proc->state = RUNNABLE;
-#ifdef CS333_P3
-	pushreadyq(proc, &ptable.pReadyList[0]);
-#endif
   sched();
   release(&ptable.lock);
 }
@@ -613,7 +653,7 @@ wakeup1(void *chan)
 #else
     if(p->state == SLEEPING && p->chan == chan) {
       p->state = RUNNABLE;
-			pushreadyq(p, &ptable.pReadyList[0]);
+			pushreadyq(p, &ptable.pReadyList[p->priority]);
 		}
 #endif
 }
@@ -646,7 +686,7 @@ kill(int pid)
 #else
       if(p->state == SLEEPING) {
         p->state = RUNNABLE;
-				pushreadyq(p, &ptable.pReadyList[0]);
+				pushreadyq(p, &ptable.pReadyList[p->priority]);
 			}
 #endif
 
