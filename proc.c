@@ -43,8 +43,8 @@ popq(struct proc **proclist)
 	if(proclist <= 0 || *proclist <= 0) return 0;
 	struct proc *ret;
 	ret = *proclist;
-	ret->next = 0;
 	*proclist = (*proclist)->next;
+	ret->next = 0;
 	return ret;
 }
 
@@ -488,9 +488,9 @@ scheduler(void)
 				do {
 					p = popq(&ptable.pReadyList[priority]);
 					if(p) {
-						p->priority = priority -1;
+						p->priority -= 1;
 						p->budget = BUDGET;
-						pushreadyq(p, &ptable.pReadyList[priority-1]);
+						pushreadyq(p, &ptable.pReadyList[p->priority]);
 					}
 				}while(p);
 			}
@@ -562,12 +562,12 @@ sched(void)
 	// Check process's budget if its <= 0
 	// demote to the next lower priority queue
 	// else add it to the back of current queue.
-		if(proc->budget <= 0 && proc->priority < PRIORITY_LOW){
-				proc->priority += 1;
-				proc->budget = BUDGET;
-		}
-		if(proc->state == RUNNABLE)
-				pushreadyq(proc, &ptable.pReadyList[proc->priority]);
+	if(proc->budget <= 0 && proc->priority < PRIORITY_LOW){
+			proc->priority += 1;
+			proc->budget = BUDGET;
+	}
+	if(proc->state == RUNNABLE)
+			pushreadyq(proc, &ptable.pReadyList[proc->priority]);
 #endif
   swtch(&proc->context, cpu->scheduler);
   cpu->intena = intena;
@@ -580,7 +580,7 @@ yield(void)
   acquire(&ptable.lock);  //DOC: yieldlock
   proc->state = RUNNABLE;
 #ifdef CS333_P3
-	pushreadyq(proc, &ptable.pReadyList[proc->priority]);
+	//pushreadyq(proc, &ptable.pReadyList[proc->priority]);
 #endif
   sched();
   release(&ptable.lock);
