@@ -43,8 +43,6 @@ popq(struct proc **proclist)
 	if(proclist <= 0 || *proclist <= 0) return 0;
 	struct proc *ret;
 	ret = *proclist;
-	if(ret->state != RUNNABLE)
-		cprintf("DEBUG...:::::%s\n",ret->state);
 	ret->next = 0;
 	*proclist = (*proclist)->next;
 	return ret;
@@ -126,13 +124,10 @@ allocproc(void)
       goto found;
   release(&ptable.lock);
 #else
-	//p = 0;
+	p = 0;
   acquire(&ptable.lock);
-  //for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  //  if(p->state == UNUSED)
-	//		pushfreeq(p, &ptable.pFreeList);
 	p = popq(&ptable.pFreeList);
-	if(p->state == UNUSED)
+	if(p && p->state == UNUSED)
 		goto found;
   release(&ptable.lock);
 #endif
@@ -203,12 +198,13 @@ userinit(void)
 #ifdef CS333_P3
 	acquire(&ptable.lock);
 	ptable.pFreeList = 0;
+	// Initialize freelist by putting UNUSED processes to the list
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
 			pushfreeq(p, &ptable.pFreeList);
 	// Initialize readylist to empty
-	int i = PRIORITY_HIGH;
-	for(; i < NUM_READY_LISTS; ++i) {
+	int i;
+	for(i = PRIORITY_HIGH; i < NUM_READY_LISTS; ++i) {
 		ptable.pReadyList[i] = 0;	
 	}
 	release(&ptable.lock);
@@ -234,9 +230,9 @@ userinit(void)
 
   p->state = RUNNABLE;
 #ifdef CS333_P3
-	p->next = 0;
 	acquire(&ptable.lock);
-	pushreadyq(p, &ptable.pReadyList[PRIORITY_HIGH]);
+	ptable.pReadyList[PRIORITY_HIGH] = p;
+	p->next = 0;
 	release(&ptable.lock);
 #endif
 
@@ -511,9 +507,6 @@ scheduler(void)
 			if(!p) {
 				panic("poping an empty readylist");
 			}
-			if(p->state != RUNNABLE) {
-				panic("Non-runnable process in readytable");
-			}
 
 			// Switch to chosen process.  It is the process's job
 			// to release ptable.lock and then reacquire it
@@ -569,10 +562,9 @@ sched(void)
 	// Check process's budget if its <= 0
 	// demote to the next lower priority queue
 	// else add it to the back of current queue.
-		if(proc->budget <= 0){
-			if(proc->priority < PRIORITY_LOW)
+		if(proc->budget <= 0 || proc->priority < PRIORITY_LOW){
 				proc->priority += 1;
-			proc->budget = BUDGET;
+				proc->budget = BUDGET;
 		}
 		if(proc->state == RUNNABLE)
 				pushreadyq(proc, &ptable.pReadyList[proc->priority]);
