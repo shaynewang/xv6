@@ -1,0 +1,48 @@
+The numbers to the left of the file names in the table are sheet numbers.
+The source code has been printed in a double column format with fifty
+lines per column, giving one hundred lines per sheet (or page).
+Thus there is a convenient relationship between line numbers and sheet numbers.
+
+
+# basic headers		32 vectors.pl		68 mp.h
+01 types.h		33 trapasm.S		69 mp.c
+01 param.h		33 trap.c		71 lapic.c
+02 memlayout.h		35 syscall.h		73 ioapic.c
+02 date.h		35 syscall.c		74 picirq.c
+03 defs.h		38 sysproc.c		75 kbd.h
+05 x86.h		40 halt.c		77 kbd.c
+07 asm.h					77 console.c
+07 mmu.h		# file system		80 timer.c
+10 elf.h		41 buf.h		81 uart.c
+			41 fcntl.h		
+# entering xv6		42 stat.h		# user-level
+10 entry.S		42 fs.h			82 initcode.S
+11 entryother.S		43 file.h		82 usys.S
+12 main.c		44 ide.c		83 init.c
+			46 bio.c		83 sh.c
+# locks			47 log.c		
+14 spinlock.h		50 fs.c			# bootloader
+14 spinlock.c		57 file.c		90 bootasm.S
+			59 sysfile.c		91 bootmain.c
+# processes		63 exec.c		
+16 vm.c						# add student files her
+20 proc.h		# pipes			92 print_mode.c
+22 proc.c		65 pipe.c		93 date.c
+30 swtch.S					93 uproc.h
+31 kalloc.c		# string operations	94 testgiduid.c
+			66 string.c		94 ps.c
+# system calls					95 time.c
+32 traps.h		# low-level hardware	96 testSched.c
+
+
+The source listing is preceded by a cross-reference that lists every defined 
+constant, struct, global variable, and function in xv6.  Each entry gives,
+on the same line as the name, the line number (or, in a few cases, numbers)
+where the name is defined.  Successive lines in an entry list the line
+numbers where the name is used.  For example, this entry:
+
+    swtch 2658
+        0374 2428 2466 2657 2658
+
+indicates that swtch is defined on line 2658 and is mentioned on five lines
+on sheets 03, 24, and 26.
