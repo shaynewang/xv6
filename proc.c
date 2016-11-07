@@ -124,7 +124,7 @@ allocproc(void)
       goto found;
   release(&ptable.lock);
 #else
-	p = 0;
+	//p = 0;
   acquire(&ptable.lock);
 	p = popq(&ptable.pFreeList);
 	if(p && p->state == UNUSED)
@@ -141,7 +141,9 @@ found:
   // Allocate kernel stack.
   if((p->kstack = kalloc()) == 0){
     p->state = UNUSED;
+		acquire(&ptable.lock);
 		pushfreeq(p, &ptable.pFreeList);
+		release(&ptable.lock);
     return 0;
   }
   sp = p->kstack + KSTACKSIZE;
@@ -469,9 +471,9 @@ scheduler(void)
 		// Enable interrupts on this processor.
 		sti();
 
-		acquire(&ptable.lock);
 		// If promotion timer expires promote all processes one
 		// level up
+		acquire(&ptable.lock);
 		if(timetopromote()) {
 			// Increase priority for Running, sleeping processes
 			for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
@@ -522,8 +524,6 @@ scheduler(void)
 			swtch(&cpu->scheduler, proc->context);
 			switchkvm();
 
-
-			
 			// Process is done running for now.
 			// It should have changed its p->state before coming back.
 			proc = 0;
@@ -562,7 +562,7 @@ sched(void)
 	// Check process's budget if its <= 0
 	// demote to the next lower priority queue
 	// else add it to the back of current queue.
-		if(proc->budget <= 0 || proc->priority < PRIORITY_LOW){
+		if(proc->budget <= 0 && proc->priority < PRIORITY_LOW){
 				proc->priority += 1;
 				proc->budget = BUDGET;
 		}

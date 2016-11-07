@@ -6,7 +6,7 @@
 #define INITGID     0
 
 // Default number of ready processes list
-#define NUM_READY_LISTS	6
+#define NUM_READY_LISTS	4
 // Default starting priority number
 #define PRIORITY_HIGH	0
 // Default lowest priority number
