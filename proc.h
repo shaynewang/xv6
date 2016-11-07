@@ -6,13 +6,15 @@
 #define INITGID     0
 
 // Default number of ready processes list
-#define NUM_READY_LISTS	3
+#define NUM_READY_LISTS	6
 // Default starting priority number
-#define PRIORITY	0
+#define PRIORITY_HIGH	0
+// Default lowest priority number
+#define PRIORITY_LOW	PRIORITY_HIGH+NUM_READY_LISTS-1
 // Default promotion interval
-#define TICKS_TO_PROMOTE 1200
+#define TICKS_TO_PROMOTE 400
 // Default process budget
-#define BUDGET 400
+#define BUDGET 100
 
 // Per-CPU state
 struct cpu {

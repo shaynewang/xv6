@@ -84,3 +84,4 @@ uproc.h
 testgiduid.c
 ps.c
 time.c
+testSched.c

@@ -17,7 +17,22 @@ main(int argc, char *argv[])
 		exit();
 	}
 	printf(1,"\nNumber of processes is :%d\n",ptable_size);
-	printf(1,"\nPID       State     Name      UID       GID       PPID       Elapsed   CPU       Size\n");
+#ifdef CS333_P3
+	printf(1,"\nPID       State     Name      UID       GID       PPID    Priority    Elapsed   CPU       Size\n");
+	int i;
+	for(i=0; i < ptable_size; ++i){
+    printf(1,"\n%d         %s    %s    %d    %d    %d    %d    %d.%d    %d.%d    %d\n", ps->pid,\
+		ps->state,\
+		ps->name,\
+		ps->uid,\
+		ps->gid,\
+		ps->ppid,\
+		ps->priority,\
+		ps->elapsed_ticks/100, ps->elapsed_ticks%100, ps->CPU_total_ticks/100, ps->CPU_total_ticks%100, ps->size);
+		++ps;
+	}
+#else
+	printf(1,"\nPID       State     Name      UID       GID       PPID      Elapsed   CPU       Size\n");
 	int i;
 	for(i=0; i < ptable_size; ++i){
     printf(1,"\n%d         %s    %s    %d    %d    %d    %d.%d    %d.%d    %d\n", ps->pid,\
@@ -25,9 +40,11 @@ main(int argc, char *argv[])
 		ps->name,\
 		ps->uid,\
 		ps->gid,\
-		ps->ppid, ps->elapsed_ticks/100, ps->elapsed_ticks%100, ps->CPU_total_ticks/100, ps->CPU_total_ticks%100, ps->size);
+		ps->ppid,\
+		ps->elapsed_ticks/100, ps->elapsed_ticks%100, ps->CPU_total_ticks/100, ps->CPU_total_ticks%100, ps->size);
 		++ps;
 	}
+#endif
 	free(ps);
   exit();
 }
