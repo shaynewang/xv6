@@ -17,6 +17,12 @@
 
 #define NINODES 200
 
+#ifdef CS333_P4
+#define DEFAULTUID 0
+#define DEFAULTGID 0
+#define DEFAULTMODE 0x0755
+#endif
+
 // Disk layout:
 // [ boot block | sb block | log | inode blocks | free bit map | data blocks ]
 
@@ -229,6 +235,11 @@ ialloc(ushort type)
   bzero(&din, sizeof(din));
   din.type = xshort(type);
   din.nlink = xshort(1);
+#ifdef CS333_P4
+	din.uid = xshort(DEFAULTUID); // set default uid
+	din.gid = xshort(DEFAULTGID); // set default gid
+	din.mode = xint(DEFAULTMODE); // set default mode
+#endif
   din.size = xint(0);
   winode(inum, &din);
   return inum;

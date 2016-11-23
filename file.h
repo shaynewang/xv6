@@ -8,7 +8,6 @@ struct file {
   uint off;
 };
 
-
 // in-memory copy of an inode
 struct inode {
   uint dev;           // Device number
@@ -20,6 +19,11 @@ struct inode {
   short major;
   short minor;
   short nlink;
+#ifdef CS333_P4
+	short uid;						// owner id
+	short gid;						// group id
+	union mode_t mode;    // protection/mode bits
+#endif
   uint size;
   uint addrs[NDIRECT+1];
 };

@@ -144,9 +144,11 @@ found:
   // Allocate kernel stack.
   if((p->kstack = kalloc()) == 0){
     p->state = UNUSED;
+#ifdef CS333_P3
 		acquire(&ptable.lock);
 		pushfreeq(p, &ptable.pFreeList);
 		release(&ptable.lock);
+#endif
     return 0;
   }
   sp = p->kstack + KSTACKSIZE;

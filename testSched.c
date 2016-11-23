@@ -1,5 +1,6 @@
 // This program can be freely used to test your scheduler. It is
 // by no means a complete test.
+#ifdef CS333_P3
 
 #include "types.h"
 #include "user.h"
@@ -45,3 +46,4 @@ main(void)
   exit();
 }
 
+#endif

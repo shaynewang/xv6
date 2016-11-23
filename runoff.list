@@ -85,3 +85,6 @@ testgiduid.c
 ps.c
 time.c
 testSched.c
+testsetuid.c
+p4-test.h
+p4-test.c

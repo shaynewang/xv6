@@ -285,6 +285,11 @@ ilock(struct inode *ip)
     ip->minor = dip->minor;
     ip->nlink = dip->nlink;
     ip->size = dip->size;
+#ifdef CS333_P4
+		ip->uid = dip->uid;
+		ip->gid = dip->gid;
+		ip->mode= dip->mode;
+#endif
     memmove(ip->addrs, dip->addrs, sizeof(ip->addrs));
     brelse(bp);
     ip->flags |= I_VALID;
@@ -425,6 +430,12 @@ stati(struct inode *ip, struct stat *st)
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
+#ifdef CS333_P4
+	st->uid = ip->uid; // copy inode uid
+	st->gid = ip->gid; // copy inode gid
+	st->mode.asInt = ip->mode.asInt; // copy inode mode bits stat_mode_t
+																			// has to be exactly the same as mode_t
+#endif
 }
 
 // Read data from inode.

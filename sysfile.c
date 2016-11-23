@@ -14,6 +14,10 @@
 #include "file.h"
 #include "fcntl.h"
 
+#ifdef CS333_P4
+#define DEFAULTMODEBIT 4
+#endif
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -439,3 +443,83 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+#ifdef CS333_P4
+// change file uid
+int
+sys_chown(void)
+{
+	int uid;
+  struct inode *ip;
+	char *path;
+  begin_op();
+  if(argint(0, &uid) < 0 || argstr(1, &path) < 0 || (ip = namei(path)) == 0){
+    end_op();
+    return -1;
+  }
+  ilock(ip);
+	ip->uid = uid;
+  iunlock(ip);
+	return 0;
+}
+
+// change file gid
+int
+sys_chgrp(void)
+{
+	int gid;
+  struct inode *ip;
+	char *path;
+  begin_op();
+  if(argint(0, &gid) < 0 || argstr(1, &path) < 0 || (ip = namei(path)) == 0){
+    end_op();
+    return -1;
+  }
+  ilock(ip);
+	ip->gid = gid;
+  iunlock(ip);
+	return 0;
+}
+
+// change file mode
+// left most number is binary then follow 3 octal numbers
+int
+sys_chmod(void)
+{
+	char *mode;
+	char *path;
+  struct inode *ip;
+
+  if(argptr(0, (void*)&mode, sizeof(ip->mode.asInt)) < 0)
+    return -1;
+  begin_op();
+  if(argstr(1, &path) < 0 || (ip = namei(path)) == 0){
+    end_op();
+    return -1;
+  }
+  ilock(ip);
+	if(strlen(mode) != DEFAULTMODEBIT)
+		return -1;
+
+	int setuid    = mode[0] - '0';
+	if(setuid < 0 || setuid > 1)
+		return -1;
+	int userbits	= mode[1] - '0';
+	if(userbits < 0 || userbits > 7)
+		return -1;
+	int grpbits		= mode[2] - '0';
+	if(grpbits < 0 || grpbits > 7)
+		return -1;
+	int otherbits = mode[3] - '0';
+	if(otherbits < 0 || otherbits > 7)
+		return -1;
+	ip->mode.asInt += (setuid << 9);
+	ip->mode.asInt += (userbits << 6);
+	ip->mode.asInt += (grpbits << 3);
+	ip->mode.asInt += (otherbits << 0);
+	iupdate(ip);
+  iunlock(ip);
+  end_op();
+	return 0;
+}
+#endif
