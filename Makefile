@@ -80,7 +80,7 @@ CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 &
 # CFLAGS += -DPRINT_SYSCALLS     # CS333 project 1 to print syscall traces
 CFLAGS += -DCS333_P2					 # CS333 project 2 turn on
 # CFLAGS += -DCS333_P3					 # CS333 project 3 turn on
-#CFLAGS += -DCS333_P4					 # CS333 project 4 turn on
+CFLAGS += -DCS333_P4					 # CS333 project 4 turn on
 CFLAGS += -DUSE_BUILTINS       # CS333 project 2 turn on shell built-ins
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''

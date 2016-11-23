@@ -1,6 +1,7 @@
 // A grand unified test for CS333 project 4.
 // P4 adds protection (via UNIX-like mode bits) to xv6. This 
 // program is provided for testing.
+#ifdef CS333_P4
 
 #include "types.h"
 #include "user.h"
@@ -343,4 +344,4 @@ main(int argc, char *argv[])
   free(buf);
   exit();
 }
-
+#endif

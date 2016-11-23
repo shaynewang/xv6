@@ -1,4 +1,4 @@
-
+#ifdef CS333_P4
 #define TRUE 1
 #define FALSE 0
 #define PASS 1
@@ -33,4 +33,4 @@ int testperms[][4] = {
   {212, 323, 434, 323}, // gids match
   {111, 222, 333, 444}, // match on other
 };
-
+#endif
