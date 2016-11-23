@@ -238,7 +238,7 @@ ialloc(ushort type)
 #ifdef CS333_P4
 	din.uid = xshort(DEFAULTUID); // set default uid
 	din.gid = xshort(DEFAULTGID); // set default gid
-	din.mode = xint(DEFAULTMODE); // set default mode
+	din.mode.asInt = xint(DEFAULTMODE); // set default mode
 #endif
   din.size = xint(0);
   winode(inum, &din);
