@@ -17,12 +17,6 @@
 
 #define NINODES 200
 
-#ifdef CS333_P4
-#define DEFAULTUID 0
-#define DEFAULTGID 0
-#define DEFAULTMODE 0x0755
-#endif
-
 // Disk layout:
 // [ boot block | sb block | log | inode blocks | free bit map | data blocks ]
 

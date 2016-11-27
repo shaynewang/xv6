@@ -244,8 +244,8 @@ userinit(void)
 #endif
 
 #ifdef CS333_P2
-	p->uid = INITUID;
-	p->gid = INITGID;
+	p->uid = DEFAULTUID;
+	p->gid = DEFAULTGID;
 #endif
 }
 

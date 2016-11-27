@@ -185,6 +185,9 @@ UPROGS=\
 	_testSched\
 	_testsetuid\
 	_p4-test\
+	_chown\
+	_chgrp\
+	_chmod\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

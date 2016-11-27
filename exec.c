@@ -6,6 +6,10 @@
 #include "defs.h"
 #include "x86.h"
 #include "elf.h"
+#ifdef CS333_P4
+#include "fs.h"
+#include "file.h"
+#endif
 
 int
 exec(char *path, char **argv)
@@ -25,6 +29,25 @@ exec(char *path, char **argv)
   }
   ilock(ip);
   pgdir = 0;
+
+#ifdef CS333_P4
+	// Check if file has execution permission
+	if(proc->uid == ip->uid){
+		if(ip->mode.flags.u_x == 0){
+			goto bad;
+		}
+	}
+	else if(proc->gid == ip->gid){
+		if(ip->mode.flags.g_x == 0){
+			goto bad;
+		}
+	}
+	else{
+		if(ip->mode.flags.o_x == 0){
+			goto bad;
+		}
+	}
+#endif
 
   // Check ELF header
   if(readi(ip, (char*)&elf, 0, sizeof(elf)) < sizeof(elf))
@@ -92,6 +115,19 @@ exec(char *path, char **argv)
   proc->sz = sz;
   proc->tf->eip = elf.entry;  // main
   proc->tf->esp = sp;
+#ifdef CS333_P4
+  begin_op();
+  if((ip = namei(path)) == 0){
+    end_op();
+    return -1;
+  }
+  ilock(ip);
+	if(ip->mode.flags.setuid == 1){
+		proc->uid = ip->uid;
+	}
+  iunlockput(ip);
+	end_op();
+#endif
   switchuvm(proc);
   freevm(oldpgdir);
   return 0;

@@ -1,9 +1,11 @@
 // Segments in proc->gdt.
 #define NSEGS     7
 
+#ifndef CS333_P4
 // Default UID and GID for init
-#define INITUID     0
-#define INITGID     0
+#define DEFAULTUID     0
+#define DEFAULTGID     0
+#endif
 
 // Default number of ready processes list
 #define NUM_READY_LISTS	7

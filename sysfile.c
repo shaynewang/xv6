@@ -452,14 +452,17 @@ sys_chown(void)
 	int uid;
   struct inode *ip;
 	char *path;
+	if(argint(0, &uid) < 0 || argstr(1, &path) < 0)
+		return -1;
   begin_op();
-  if(argint(0, &uid) < 0 || argstr(1, &path) < 0 || (ip = namei(path)) == 0){
+  if((ip = namei(path)) == 0){
     end_op();
     return -1;
   }
   ilock(ip);
 	ip->uid = uid;
   iunlock(ip);
+  end_op();
 	return 0;
 }
 
@@ -470,14 +473,17 @@ sys_chgrp(void)
 	int gid;
   struct inode *ip;
 	char *path;
+	if(argint(0, &gid) < 0 || argstr(1, &path) < 0)
+		return -1;
   begin_op();
-  if(argint(0, &gid) < 0 || argstr(1, &path) < 0 || (ip = namei(path)) == 0){
+  if((ip = namei(path)) == 0){
     end_op();
     return -1;
   }
   ilock(ip);
 	ip->gid = gid;
   iunlock(ip);
+  end_op();
 	return 0;
 }
 
@@ -492,27 +498,33 @@ sys_chmod(void)
 
   if(argptr(0, (void*)&mode, sizeof(ip->mode.asInt)) < 0)
     return -1;
+	int setuid    = mode[0] - '0';
+	if(setuid < 0 || setuid > 1){
+		return -1;
+	}
+	int userbits	= mode[1] - '0';
+	if(userbits < 0 || userbits > 7){
+		return -1;
+	}
+	int grpbits		= mode[2] - '0';
+	if(grpbits < 0 || grpbits > 7){
+		return -1;
+	}
+	int otherbits = mode[3] - '0';
+	if(otherbits < 0 || otherbits > 7){
+		return -1;
+	}
   begin_op();
   if(argstr(1, &path) < 0 || (ip = namei(path)) == 0){
     end_op();
     return -1;
   }
+	if(strlen(mode) != DEFAULTMODEBIT){
+		end_op();
+		return -1;
+	}
   ilock(ip);
-	if(strlen(mode) != DEFAULTMODEBIT)
-		return -1;
-
-	int setuid    = mode[0] - '0';
-	if(setuid < 0 || setuid > 1)
-		return -1;
-	int userbits	= mode[1] - '0';
-	if(userbits < 0 || userbits > 7)
-		return -1;
-	int grpbits		= mode[2] - '0';
-	if(grpbits < 0 || grpbits > 7)
-		return -1;
-	int otherbits = mode[3] - '0';
-	if(otherbits < 0 || otherbits > 7)
-		return -1;
+	ip->mode.asInt = 0;
 	ip->mode.asInt += (setuid << 9);
 	ip->mode.asInt += (userbits << 6);
 	ip->mode.asInt += (grpbits << 3);

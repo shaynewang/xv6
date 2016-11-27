@@ -185,6 +185,11 @@ ialloc(uint dev, short type)
     if(dip->type == 0){  // a free inode
       memset(dip, 0, sizeof(*dip));
       dip->type = type;
+#ifdef CS333_P4
+		dip->uid = DEFAULTUID;
+		dip->gid = DEFAULTGID;
+		dip->mode.asInt= DEFAULTMODE;
+#endif
       log_write(bp);   // mark it allocated on the disk
       brelse(bp);
       return iget(dev, inum);
